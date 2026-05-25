@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>真菌危机 - Minecraft 整合包</title>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ========== CSS Reset & Base ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #9d4edd;
+            --primary-light: #c77dff;
+            --secondary: #2d6a4f;
+            --accent: #40916c;
+            --bg-dark: #0d0d12;
+            --bg-card: #161620;
+            --bg-card-hover: #1e1e2c;
+            --text-main: #e8e8e8;
+            --text-muted: #8a8a9a;
+            --border-color: #2a2a3a;
+            --gradient-primary: linear-gradient(135deg, #9d4edd 0%, #7b2cbf 100%);
+            --gradient-accent: linear-gradient(135deg, #40916c 0%, #2d6a4f 100%);
+            --shadow-glow: 0 0 30px rgba(157, 78, 221, 0.3);
+            --shadow-accent: 0 0 30px rgba(64, 145, 108, 0.3);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ========== Spore/Mycelium Texture Background ========== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(157, 78, 221, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(64, 145, 108, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(157, 78, 221, 0.02) 0%, transparent 70%);
+            background-size: 200px 200px;
+            pointer-events: none;
+            z-index: -1;
+            animation: pulse-bg 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse-bg {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* ========== Navigation ========== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1rem 2rem;
+            background: rgba(13, 13, 18, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-logo i {
+            font-size: 1.2rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-main);
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-toggle {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--primary);
+        }
+
+        /* ========== Hero Section ========== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: 
+                linear-gradient(rgba(13, 13, 18, 0.8), rgba(13, 13, 18, 0.95)),
+                url('https://placehold.co/1920x1080/1a1a25/9d4edd?text=Fungal+Apocalypse') center/cover;
+        }
+
+        .hero-content {
+            text-align: center;
+            padding: 2rem;
+            max-width: 800px;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: 8px;
+            margin-bottom: 1rem;
+            animation: glow-purple 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow-purple {
+            from { filter: drop-shadow(0 0 10px rgba(157, 78, 221, 0.5)); }
+            to { filter: drop-shadow(0 0 30px rgba(157, 78, 221, 0.8)); }
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            letter-spacing: 4px;
+        }
+
+        .hero-version {
+            display: inline-block;
+            background: var(--bg-card);
+            border: 1px solid var(--primary);
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            color: var(--primary);
+            margin-bottom: 2rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(157, 78, 221, 0.1);
+            transform: translateY(-3px);
+        }
+
+        /* ========== Section Common Styles ========== */
+        section {
+            padding: 5rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+
+        /* ========== Features Section ========== */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--gradient-primary);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* ========== Mods Section ========== */
+        .mods-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .mod-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .mod-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient-accent);
+        }
+
+        .mod-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-accent);
+        }
+
+        .mod-icon {
+            width: 100%;
+            height: 150px;
+            background: var(--bg-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .mod-icon img {
+            max-width: 80%;
+            max-height: 80%;
+            object-fit: contain;
+        }
+
+        .mod-icon i {
+            font-size: 4rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .mod-content {
+            padding: 1.5rem;
+        }
+
+        .mod-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .mod-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* ========== System Requirements ========== */
+        .requirements-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .req-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .req-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .req-card.minimum::before {
+            background: linear-gradient(135deg, #ffaa00 0%, #ff6600 100%);
+        }
+
+        .req-card.recommended::before {
+            background: var(--gradient-accent);
+        }
+
+        .req-badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .minimum .req-badge {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
+        }
+
+        .recommended .req-badge {
+            background: rgba(64, 145, 108, 0.2);
+            color: var(--accent);
+        }
+
+        .req-list {
+            list-style: none;
+            text-align: left;
+        }
+
+        .req-list li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .req-list li:last-child {
+            border-bottom: none;
+        }
+
+        .req-list i {
+            color: var(--accent);
+            width: 20px;
+        }
+
+        /* ========== Gallery Section ========== */
+        .gallery-container {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .gallery-slider {
+            display: flex;
+            overflow: hidden;
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+        }
+
+        .gallery-track {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+
+        .gallery-slide {
+            min-width: 100%;
+            position: relative;
+        }
+
+        .gallery-slide img {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+            display: block;
+        }
+
+        .gallery-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background: rgba(13, 13, 18, 0.8);
+            border: 1px solid var(--primary);
+            border-radius: 50%;
+            color: var(--primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .gallery-nav:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .gallery-nav.prev { left: 1rem; }
+        .gallery-nav.next { right: 1rem; }
+
+        .gallery-dots {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .gallery-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .gallery-dot.active {
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        /* Lightbox */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+            border: 2px solid var(--primary);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            font-size: 2rem;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .lightbox-close:hover {
+            color: var(--primary);
+        }
+
+        /* ========== Installation Guide ========== */
+        .steps-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .step {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 24px;
+            top: 60px;
+            width: 2px;
+            height: calc(100% - 30px);
+            background: linear-gradient(to bottom, var(--primary), var(--accent), transparent);
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            flex: 1;
+        }
+
+        .step-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .step-title i {
+            color: var(--primary);
+        }
+
+        .step-desc {
+            color: var(--text-muted);
+        }
+
+        /* ========== Download Section ========== */
+        .download-section {
+            background: linear-gradient(rgba(22, 22, 32, 0.95), rgba(22, 22, 32, 0.95)),
+                        url('https://placehold.co/1200x600/161620/9d4edd?text=Fungal+Crisis');
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            padding: 3rem;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .download-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .download-info {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .download-info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .download-info-item i {
+            color: var(--accent);
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-download.main {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .btn-download.main:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .btn-download.mirror {
+            background: var(--bg-card);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-download.mirror:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* ========== FAQ Section ========== */
+        .faq-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .faq-item:hover {
+            border-color: var(--primary);
+        }
+
+        .faq-question {
+            width: 100%;
+            padding: 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: inherit;
+        }
+
+        .faq-question i {
+            color: var(--primary);
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item.active .faq-question i {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 400px;
+            padding: 0 1.5rem 1.5rem;
+        }
+
+        .faq-answer p {
+            color: var(--text-muted);
+            line-height: 1.8;
+        }
+
+        /* ========== Footer ========== */
+        footer {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .footer-credits {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-social {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .social-link {
+            width: 45px;
+            height: 45px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--text-main);
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        .footer-copyright {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* ========== Responsive Design ========== */
+        @media (max-width: 992px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .mods-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .hero-title {
+                font-size: 3rem;
+                letter-spacing: 4px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: rgba(13, 13, 18, 0.95);
+                backdrop-filter: blur(12px);
+                flex-direction: column;
+                padding: 1rem;
+                gap: 1rem;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .nav-toggle {
+                display: block;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .mods-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .requirements-container {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .step {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .step:not(:last-child)::after {
+                display: none;
+            }
+
+            .download-section {
+                padding: 2rem 1.5rem;
+            }
+
+            .download-buttons {
+                flex-direction: column;
+            }
+
+            .btn-download {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            section {
+                padding: 3rem 1rem;
+            }
+
+            .hero-title {
+                font-size: 2rem;
+                letter-spacing: 2px;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ========== Navigation ========== -->
+    <nav class="navbar">
+        <a href="#" class="nav-logo">
+            <i class="fas fa-microbe"></i>
+            真菌危机
+        </a>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#download">下载</a></li>
+            <li><a href="#features">特色</a></li>
+            <li><a href="#gallery">画廊</a></li>
+            <li><a href="#faq">FAQ</a></li>
+        </ul>
+        <div class="nav-toggle" id="navToggle">
+            <i class="fas fa-bars"></i>
+        </div>
+    </nav>
+
+    <!-- ========== Hero Section ========== -->
+    <header class="hero" id="home">
+        <div class="hero-content">
+            <h1 class="hero-title">真菌危机</h1>
+            <p class="hero-subtitle">FUNGAL CRISIS</p>
+            <span class="hero-version">Minecraft 1.20.1 | v1.0.0</span>
+            <p class="hero-subtitle" style="font-size: 1.2rem; letter-spacing: normal; max-width: 600px; margin: 0 auto 2rem;">
+                以《真菌感染：孢子》为核心的轻量化任务冒险整合包，融合卓越前线等模组，通过FTB任务系统引导探索
+            </p>
+            <div class="hero-buttons">
+                <a href="#download" class="btn btn-primary">
+                    <i class="fas fa-download"></i>
+                    立即下载
+                </a>
+                <a href="#gallery" class="btn btn-secondary">
+                    <i class="fas fa-play"></i>
+                    观看宣传片
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ========== Features Section ========== -->
+    <section id="features">
+        <h2 class="section-title">核心特色</h2>
+        <p class="section-subtitle">精心打造的紧张生存体验</p>
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fas fa-clock feature-icon"></i>
+                <h3 class="feature-title">限时资源争夺</h3>
+                <p class="feature-desc">遗迹与资源点随感染扩散而封锁，必须争分夺秒</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-tasks feature-icon"></i>
+                <h3 class="feature-title">FTB任务指引</h3>
+                <p class="feature-desc">主线与支线任务引导，避免无效时间浪费</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-users feature-icon"></i>
+                <h3 class="feature-title">轻量化体验</h3>
+                <p class="feature-desc">精选模组搭配，15小时+游玩时长，低配置友好</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-skull-crossbones feature-icon"></i>
+                <h3 class="feature-title">紧张发育</h3>
+                <p class="feature-desc">真菌强度同步提升，保持适度挑战压力</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== Mods Section ========== -->
+    <section id="mods">
+        <h2 class="section-title">精选模组</h2>
+        <p class="section-subtitle">核心组件一览</p>
+        <div class="mods-grid">
+            <div class="mod-card">
+                <div class="mod-icon">
+                    <i class="fas fa-microbe"></i>
+                </div>
+                <div class="mod-content">
+                    <h3 class="mod-name">真菌感染：孢子</h3>
+                    <p class="mod-desc">核心模组，真菌生物持续侵蚀地形并强化自身，营造紧迫的生存压力</p>
+                </div>
+            </div>
+            <div class="mod-card">
+                <div class="mod-icon">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <div class="mod-content">
+                    <h3 class="mod-name">神化</h3>
+                    <p class="mod-desc">提供神话级装备与能力，但解锁进度必须与真菌扩散速度竞争</p>
+                </div>
+            </div>
+            <div class="mod-card">
+                <div class="mod-icon">
+                    <i class="fas fa-scroll"></i>
+                </div>
+                <div class="mod-content">
+                    <h3 class="mod-name">遗物</h3>
+                    <p class="mod-desc">远古遗迹藏有强力物品，资源限时，错过将失去关键优势</p>
+                </div>
+            </div>
+            <div class="mod-card">
+                <div class="mod-icon">
+                    <i class="fas fa-car"></i>
+                </div>
+                <div class="mod-content">
+                    <h3 class="mod-name">卓越前线</h3>
+                    <p class="mod-desc">载具系统扩大资源搜索范围，必须在感染扩散前完成制造</p>
+                </div>
+            </div>
+            <div class="mod-card">
+                <div class="mod-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="mod-content">
+                    <h3 class="mod-name">结构变体</h3>
+                    <p class="mod-desc">多样化建筑与遗迹作为限时资源点，未及时探索将被菌丝封锁</p>
+                </div>
+            </div>
+            <div class="mod-card">
+                <div class="mod-icon">
+                    <i class="fas fa-moon"></i>
+                </div>
+                <div class="mod-content">
+                    <h3 class="mod-name">YUNG末地岛屿优化</h3>
+                    <p class="mod-desc">重塑末地挑战性，使其成为发育关键阶段必须突破的战场</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== System Requirements ========== -->
+    <section id="requirements">
+        <h2 class="section-title">系统需求</h2>
+        <p class="section-subtitle">配置友好，轻松运行</p>
+        <div class="requirements-container">
+            <div class="req-card minimum">
+                <span class="req-badge">最低配置</span>
+                <ul class="req-list">
+                    <li><i class="fas fa-memory"></i> 内存: 6GB RAM</li>
+                    <li><i class="fas fa-microchip"></i> CPU: Intel i3-8100 / AMD Ryzen 3</li>
+                    <li><i class="fas fa-desktop"></i> 显卡: NVIDIA GTX 950 / AMD RX 550</li>
+                    <li><i class="fas fa-hdd"></i> 存储: 5GB 可用空间</li>
+                    <li><i class="fas fa-network"></i> 网络: 宽带连接</li>
+                </ul>
+            </div>
+            <div class="req-card recommended">
+                <span class="req-badge">推荐配置</span>
+                <ul class="req-list">
+                    <li><i class="fas fa-memory"></i> 内存: 8GB RAM</li>
+                    <li><i class="fas fa-microchip"></i> CPU: Intel i5-9400 / AMD Ryzen 5</li>
+                    <li><i class="fas fa-desktop"></i> 显卡: NVIDIA GTX 1060 / AMD RX 580</li>
+                    <li><i class="fas fa-hdd"></i> 存储: 8GB SSD可用空间</li>
+                    <li><i class="fas fa-network"></i> 网络: 宽带连接</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== Gallery Section ========== -->
+    <section id="gallery">
+        <h2 class="section-title">媒体画廊</h2>
+        <p class="section-subtitle">游戏截图与宣传素材</p>
+        <div class="gallery-container">
+            <div class="gallery-slider">
+                <div class="gallery-track" id="galleryTrack">
+                    <div class="gallery-slide">
+                        <img src="https://placehold.co/1000x562/161620/9d4edd?text=Fungal+Infection+1" alt="画廊图片1" data-index="0">
+                    </div>
+                    <div class="gallery-slide">
+                        <img src="https://placehold.co/1000x562/161620/9d4edd?text=Fungal+Infection+2" alt="画廊图片2" data-index="1">
+                    </div>
+                    <div class="gallery-slide">
+                        <img src="https://placehold.co/1000x562/161620/9d4edd?text=Fungal+Infection+3" alt="画廊图片3" data-index="2">
+                    </div>
+                    <div class="gallery-slide">
+                        <img src="https://placehold.co/1000x562/161620/9d4edd?text=Fungal+Infection+4" alt="画廊图片4" data-index="3">
+                    </div>
+                    <div class="gallery-slide">
+                        <img src="https://placehold.co/1000x562/161620/9d4edd?text=Fungal+Infection+5" alt="画廊图片5" data-index="4">
+                    </div>
+                </div>
+            </div>
+            <button class="gallery-nav prev" id="galleryPrev"><i class="fas fa-chevron-left"></i></button>
+            <button class="gallery-nav next" id="galleryNext"><i class="fas fa-chevron-right"></i></button>
+            <div class="gallery-dots" id="galleryDots"></div>
+        </div>
+    </section>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <span class="lightbox-close" id="lightboxClose"><i class="fas fa-times"></i></span>
+        <img src="" alt="放大图片" id="lightboxImg">
+    </div>
+
+    <!-- ========== Installation Guide ========== -->
+    <section id="installation">
+        <h2 class="section-title">安装指南</h2>
+        <p class="section-subtitle">简单三步，快速开始游戏</p>
+        <div class="steps-container">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3 class="step-title">
+                        <i class="fas fa-download"></i>
+                        下载整合包
+                    </h3>
+                    <p class="step-desc">点击下方下载按钮，获取整合包压缩包（约3.8GB）</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3 class="step-title">
+                        <i class="fas fa-folder-open"></i>
+                        导入启动器
+                    </h3>
+                    <p class="step-desc">打开HMCL/PCL2启动器，选择"导入整合包"，找到下载的文件</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3 class="step-title">
+                        <i class="fas fa-play"></i>
+                        分配内存并启动
+                    </h3>
+                    <p class="step-desc">在启动器设置中分配至少4GB内存，点击启动游戏</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== Download Section ========== -->
+    <section id="download">
+        <h2 class="section-title">立即下载</h2>
+        <p class="section-subtitle">孢子持续扩散，感染不断逼近</p>
+        <div class="download-section">
+            <h3 class="download-title">真菌危机 v1.0.0</h3>
+            <div class="download-info">
+                <span class="download-info-item">
+                    <i class="fas fa-tag"></i>
+                    版本: 1.0.0
+                </span>
+                <span class="download-info-item">
+                    <i class="fas fa-file"></i>
+                    大小: 3.8 GB
+                </span>
+                <span class="download-info-item">
+                    <i class="fas fa-clock"></i>
+                    更新: 2025-03-15
+                </span>
+            </div>
+            <div class="download-buttons">
+                <a href="#download-main" class="btn-download main">
+                    <i class="fas fa-download"></i>
+                    主下载节点
+                </a>
+                <a href="#download-mirror1" class="btn-download mirror">
+                    <i class="fas fa-cloud"></i>
+                    备用节点 1
+                </a>
+                <a href="#download-mirror2" class="btn-download mirror">
+                    <i class="fas fa-cloud"></i>
+                    备用节点 2
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FAQ Section ========== -->
+    <section id="faq">
+        <h2 class="section-title">常见问题</h2>
+        <p class="section-subtitle">遇到问题？在这里寻找答案</p>
+        <div class="faq-container">
+            <div class="faq-item">
+                <button class="faq-question">
+                    游戏闪退怎么办？
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>1. 确保分配内存至少4GB；2. 更新显卡驱动至最新版本；3. 检查是否安装了冲突的光影MOD；4. 尝试在启动器设置中开启"强制使用独立显卡"。如仍有问题，请查看日志文件并前往社区反馈。本整合包配置要求较低，大多数电脑均可流畅运行。</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    如何与朋友联机？
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>推荐使用花瓣PT或P2P内网穿透工具。主机玩家在游戏中打开局域网，世界种子发送给好友即可连接。也可以使用服务器方式建立持久联机，请参考Wiki中的详细教程。联机时建议确保所有玩家使用相同版本的整合包。</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    推荐使用哪个启动器？
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>推荐使用Hello Minecraft! Launcher (HMCL) 或 PCL2 启动器。两者都支持直接导入整合包，并提供便捷的内存分配和Java版本管理功能。HMCL下载: hmcl.huangyuhui.net</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    感染扩散太快怎么办？
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>这是整合包的核心玩法设计。建议优先完成FTB任务书中的主线任务，快速解锁基础装备。早期重点发展神化模组的能力系统，并尽快探索遗物模组中的远古遗迹获取强力物品。使用卓越前线的载具系统扩大搜索范围，提前规划好发育路线。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== Footer ========== -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <i class="fas fa-microbe"></i> 真菌危机
+            </div>
+            <p class="footer-credits">
+                感谢所有模组开发者对本整合包的贡献<br>
+                特别感谢《真菌感染：孢子》开发团队<br>
+                Powered by Minecraft & Modding Community
+            </p>
+            <div class="footer-social">
+                <a href="#" class="social-link" title="哔哩哔哩">
+                    <i class="fab fa-bilibili"></i>
+                </a>
+                <a href="#" class="social-link" title="GitHub">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="#" class="social-link" title="Discord">
+                    <i class="fab fa-discord"></i>
+                </a>
+            </div>
+            <p class="footer-copyright">
+                © 2025 真菌危机整合包团队. All rights reserved.<br>
+                本整合包仅供个人学习交流使用，请勿用于商业用途
+            </p>
+        </div>
+    </footer>
+
+    <!-- ========== JavaScript ========== -->
+    <script>
+        // Navigation Toggle (Mobile)
+        const navToggle = document.getElementById('navToggle');
+        const navLinks = document.getElementById('navLinks');
+
+        navToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            const icon = navToggle.querySelector('i');
+            icon.classList.toggle('fa-bars');
+            icon.classList.toggle('fa-times');
+        });
+
+        // Close mobile nav when clicking a link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+                navToggle.querySelector('i').classList.add('fa-bars');
+                navToggle.querySelector('i').classList.remove('fa-times');
+            });
+        });
+
+        // Gallery Slider
+        const galleryTrack = document.getElementById('galleryTrack');
+        const galleryPrev = document.getElementById('galleryPrev');
+        const galleryNext = document.getElementById('galleryNext');
+        const galleryDots = document.getElementById('galleryDots');
+        const galleryImages = document.querySelectorAll('.gallery-slide img');
+        let currentSlide = 0;
+        const totalSlides = galleryImages.length;
+
+        // Create dots
+        for (let i = 0; i < totalSlides; i++) {
+            const dot = document.createElement('span');
+            dot.classList.add('gallery-dot');
+            if (i === 0) dot.classList.add('active');
+            dot.addEventListener('click', () => goToSlide(i));
+            galleryDots.appendChild(dot);
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            galleryTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
+            document.querySelectorAll('.gallery-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === currentSlide);
+            });
+        }
+
+        galleryNext.addEventListener('click', () => {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            goToSlide(currentSlide);
+        });
+
+        galleryPrev.addEventListener('click', () => {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            goToSlide(currentSlide);
+        });
+
+        // Auto slide
+        let autoSlideInterval = setInterval(() => {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            goToSlide(currentSlide);
+        }, 5000);
+
+        // Pause on hover
+        document.querySelector('.gallery-container').addEventListener('mouseenter', () => {
+            clearInterval(autoSlideInterval);
+        });
+
+        document.querySelector('.gallery-container').addEventListener('mouseleave', () => {
+            autoSlideInterval = setInterval(() => {
+                currentSlide = (currentSlide + 1) % totalSlides;
+                goToSlide(currentSlide);
+            }, 5000);
+        });
+
+        // Lightbox
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+        const lightboxClose = document.getElementById('lightboxClose');
+
+        galleryImages.forEach(img => {
+            img.style.cursor = 'pointer';
+            img.addEventListener('click', () => {
+                lightboxImg.src = img.src;
+                lightbox.classList.add('active');
+            });
+        });
+
+        lightboxClose.addEventListener('click', () => {
+            lightbox.classList.remove('active');
+        });
+
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) {
+                lightbox.classList.remove('active');
+            }
+        });
+
+        // FAQ Accordion
+        document.querySelectorAll('.faq-question').forEach(button => {
+            button.addEventListener('click', () => {
+                const faqItem = button.parentElement;
+                const isActive = faqItem.classList.contains('active');
+                
+                // Close all
+                document.querySelectorAll('.faq-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+
+                // Toggle current
+                if (!isActive) {
+                    faqItem.classList.add('active');
+                }
+            });
+        });
+
+        // Smooth scroll offset for fixed navbar
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    const offset = 80;
+                    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
